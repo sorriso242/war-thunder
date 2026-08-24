@@ -233,6 +233,17 @@ let conexoesAtivas = [];
 let meuIdSocket = "local_" + Math.floor(Math.random() * 1000000);
 const outrosJogadores = {}; 
 
+// Servidores STUN do Google para furar o bloqueio de IP/Wi-Fi da mesma rede
+const CONFIG_PEER = {
+    config: {
+        iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' }
+        ]
+    }
+};
+
 function atualizarStatusUI(msg, cor = "#ffcc00") {
     const statusElem = document.getElementById('statusMultiplayer');
     if (statusElem) {
@@ -243,7 +254,9 @@ function atualizarStatusUI(msg, cor = "#ffcc00") {
 
 function criarSalaOnline() {
     atualizarStatusUI("Gerando Sala...", "#ffcc00");
-    peer = new Peer();
+    if (peer) peer.destroy();
+
+    peer = new Peer(CONFIG_PEER);
 
     peer.on('open', (id) => {
         meuIdSocket = id;
@@ -255,6 +268,11 @@ function criarSalaOnline() {
         conexoesAtivas.push(conn);
         configurarEventosConexao(conn);
     });
+
+    peer.on('error', (err) => {
+        console.error("Erro no PeerJS:", err);
+        atualizarStatusUI("Erro ao criar sala. Tente de novo.", "#ff0000");
+    });
 }
 
 function entrarNaSala() {
@@ -265,12 +283,19 @@ function entrarNaSala() {
     }
 
     atualizarStatusUI("Conectando...", "#ffcc00");
-    peer = new Peer();
+    if (peer) peer.destroy();
+
+    peer = new Peer(CONFIG_PEER);
 
     peer.on('open', (id) => {
         meuIdSocket = id;
-        conexaoPeer = peer.connect(codigoSala);
+        conexaoPeer = peer.connect(codigoSala, { reliable: true });
         configurarEventosConexao(conexaoPeer);
+    });
+
+    peer.on('error', (err) => {
+        console.error("Erro no PeerJS:", err);
+        atualizarStatusUI("Erro de conexão.", "#ff0000");
     });
 }
 
