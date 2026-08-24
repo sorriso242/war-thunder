@@ -233,24 +233,25 @@ let conexoesAtivas = [];
 let meuIdSocket = "local_" + Math.floor(Math.random() * 1000000);
 const outrosJogadores = {}; 
 
-// Servidores STUN do Google para furar o bloqueio de IP/Wi-Fi da mesma rede
+// Servidores STUN + TURN públicos para forçar a conexão P2P no mesmo Wi-Fi
 const CONFIG_PEER = {
     config: {
         iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
             { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' }
+            {
+                urls: 'turn:openrelay.metered.ca:80',
+                username: 'openrelay',
+                credential: 'openrelay'
+            },
+            {
+                urls: 'turn:openrelay.metered.ca:443',
+                username: 'openrelay',
+                credential: 'openrelay'
+            }
         ]
     }
 };
-
-function atualizarStatusUI(msg, cor = "#ffcc00") {
-    const statusElem = document.getElementById('statusMultiplayer');
-    if (statusElem) {
-        statusElem.innerText = msg;
-        statusElem.style.color = cor;
-    }
-}
 
 function criarSalaOnline() {
     atualizarStatusUI("Gerando Sala...", "#ffcc00");
@@ -275,6 +276,29 @@ function criarSalaOnline() {
     });
 }
 
+function entrarNaSala() {
+    const codigoSala = document.getElementById('codigoSalaInput').value.trim();
+    if (!codigoSala) {
+        alert("Cole o código gerado pelo seu amigo!");
+        return;
+    }
+
+    atualizarStatusUI("Conectando...", "#ffcc00");
+    if (peer) peer.destroy();
+
+    peer = new Peer(CONFIG_PEER);
+
+    peer.on('open', (id) => {
+        meuIdSocket = id;
+        conexaoPeer = peer.connect(codigoSala, { reliable: true });
+        configurarEventosConexao(conexaoPeer);
+    });
+
+    peer.on('error', (err) => {
+        console.error("Erro no PeerJS:", err);
+        atualizarStatusUI("Erro de conexão.", "#ff0000");
+    });
+}
 function entrarNaSala() {
     const codigoSala = document.getElementById('codigoSalaInput').value.trim();
     if (!codigoSala) {
