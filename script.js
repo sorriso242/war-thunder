@@ -226,11 +226,11 @@ const navioObj = criarModeloNavio();
 const navio = navioObj.group;
 const torreNavalFrente = navioObj.torreNavalFrente;
 
-// 3. MULTIPLAYER E REDE
+// 3. MULTIPLAYER E REDE (PEERJS RECONFIGURADO)
 let peer = null;
 let conexaoPeer = null;
 let conexoesAtivas = [];
-let meuIdSocket = "local_" + Math.floor(Math.random() * 1000000);
+let meuIdSocket = "user_" + Math.floor(Math.random() * 1000000);
 const outrosJogadores = {}; 
 
 function atualizarStatusUI(msg, cor = "#ffcc00") {
@@ -241,16 +241,28 @@ function atualizarStatusUI(msg, cor = "#ffcc00") {
     }
 }
 
+// Configuração com servidores STUN públicos do Google para evitar bloqueios de NAT/Roteador
+const peerConfig = {
+    debug: 1,
+    config: {
+        iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' }
+        ]
+    }
+};
+
 function criarSalaOnline() {
     atualizarStatusUI("Gerando Sala...", "#ffcc00");
     if (peer) peer.destroy();
 
-    peer = new Peer();
+    peer = new Peer(peerConfig);
 
     peer.on('open', (id) => {
         meuIdSocket = id;
         document.getElementById('codigoSalaInput').value = id;
-        atualizarStatusUI("Sala Criada! Código Gerado.", "#2ecc71");
+        atualizarStatusUI("🌐 Sala Pronta! Passe o código acima.", "#2ecc71");
     });
 
     peer.on('connection', (conn) => {
@@ -259,8 +271,8 @@ function criarSalaOnline() {
     });
 
     peer.on('error', (err) => {
-        console.error(err);
-        atualizarStatusUI("Erro ao criar sala. Tente de novo.", "#ff0000");
+        console.error("Erro Peer:", err);
+        atualizarStatusUI("Erro ao gerar sala. Clique novamente.", "#ff0000");
     });
 }
 
@@ -271,41 +283,43 @@ function entrarNaSala() {
         return;
     }
 
-    atualizarStatusUI("Conectando...", "#ffcc00");
+    atualizarStatusUI("Conectando ao amigo...", "#ffcc00");
     if (peer) peer.destroy();
 
-    peer = new Peer();
+    peer = new Peer(peerConfig);
 
     peer.on('open', (id) => {
         meuIdSocket = id;
         conexaoPeer = peer.connect(codigoSala, { reliable: true });
         
-        // Garante a abertura da conexão
         conexaoPeer.on('open', () => {
             conexoesAtivas.push(conexaoPeer);
             configurarEventosConexao(conexaoPeer);
         });
+
+        conexaoPeer.on('error', (err) => {
+            console.error("Erro Conexão:", err);
+            atualizarStatusUI("Falha ao conectar. Verifique o código.", "#ff0000");
+        });
     });
 
     peer.on('error', (err) => {
-        console.error(err);
-        atualizarStatusUI("Código inválido ou sala fechada.", "#ff0000");
+        console.error("Erro Peer:", err);
+        atualizarStatusUI("Erro de rede. Tente de novo.", "#ff0000");
     });
 }
 
 function configurarEventosConexao(conn) {
-    atualizarStatusUI("🌐 Conectado ao amigo!", "#2ecc71");
+    atualizarStatusUI("🌐 Conectado! Escolha o veículo e jogue.", "#2ecc71");
     
-    // Envia o sinal de entrada imediatamente
     setTimeout(() => {
         enviarEstadoMultiplayer('spawn');
-    }, 500);
+    }, 400);
 
     conn.on('data', (data) => {
         if (data && data.id && data.id !== meuIdSocket) {
             processarDadosMultiplayer(data);
             
-            // Se o amigo acabou de entrar, envia de volta a sua posição para ele te enxergar
             if (data.acao === 'spawn') {
                 enviarEstadoMultiplayer('posicao');
             }
