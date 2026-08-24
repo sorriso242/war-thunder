@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo de Guerra 3D</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- UI DO MENU PRINCIPAL -->
+    <div id="menu-principal">
+        <h1>GUERRA TOTAL 3D</h1>
+        
+        <div class="secao-multiplayer">
+            <input type="text" id="playerNameInput" placeholder="Seu Nome" value="Jogador1">
+            <div class="botoes-sala">
+                <button onclick="criarSalaOnline()">Criar Sala</button>
+                <button onclick="entrarNaSala()">Entrar na Sala</button>
+            </div>
+            <input type="text" id="codigoSalaInput" placeholder="Código da Sala">
+            <div id="statusMultiplayer">Status: Offline</div>
+        </div>
+
+        <h2>Escolha seu Veículo:</h2>
+        <div class="secao-veiculos">
+            <button onclick="selecionarVeiculo('tanque')">🪖 Tanque de Guerra</button>
+            <button onclick="selecionarVeiculo('aviao')">✈️ Caça de Combate</button>
+            <button onclick="selecionarVeiculo('navio')">⚓ Navio de Guerra</button>
+        </div>
+    </div>
+
+    <!-- HUD DURANTE O JOGO -->
+    <div id="hud-jogo">
+        <div id="hud-veiculo">Veículo: NENHUM</div>
+        <div id="hud-hp">Vida: 100%</div>
+        <div id="hud-arma">Arma: Primária</div>
+    </div>
+
+    <!-- BIBLIOTECAS (Three.js e PeerJS para Multiplayer) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

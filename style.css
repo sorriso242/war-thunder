@@ -1,0 +1,144 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    user-select: none;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #1a1a1a;
+}
+
+/* MENU PRINCIPAL */
+#menu-principal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(15, 20, 25, 0.9);
+    border: 2px solid #333;
+    padding: 30px;
+    border-radius: 12px;
+    color: #fff;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+    z-index: 10;
+    width: 360px;
+}
+
+#menu-principal h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #ffcc00;
+    letter-spacing: 2px;
+}
+
+#menu-principal h2 {
+    font-size: 16px;
+    margin: 20px 0 10px 0;
+    color: #ccc;
+}
+
+.secao-multiplayer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #444;
+    background: #252a30;
+    color: #fff;
+    text-align: center;
+    font-size: 14px;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: #ffcc00;
+}
+
+.botoes-sala {
+    display: flex;
+    gap: 10px;
+}
+
+.botoes-sala button {
+    flex: 1;
+    padding: 8px;
+    font-size: 13px;
+}
+
+.secao-veiculos {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+button {
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    background: #2e353d;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+
+button:hover {
+    background: #4a535e;
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+#statusMultiplayer {
+    font-size: 12px;
+    color: #ffcc00;
+    margin-top: 5px;
+}
+
+/* HUD EM JOGO */
+#hud-jogo {
+    display: none;
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.75);
+    border: 1px solid #ff5500;
+    padding: 15px;
+    border-radius: 8px;
+    color: #fff;
+    font-family: monospace;
+    z-index: 5;
+    min-width: 280px;
+}
+
+#hud-veiculo {
+    font-weight: bold;
+    color: #ffffff;
+    margin-bottom: 5px;
+}
+
+#hud-hp {
+    font-size: 18px;
+    font-weight: bold;
+    color: #00ff00;
+    margin-bottom: 5px;
+}
+
+#hud-arma {
+    font-size: 13px;
+    color: #00ffff;
+}
