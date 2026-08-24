@@ -233,31 +233,19 @@ let conexoesAtivas = [];
 let meuIdSocket = "local_" + Math.floor(Math.random() * 1000000);
 const outrosJogadores = {}; 
 
-// Servidores STUN + TURN públicos para forçar a conexão P2P no mesmo Wi-Fi
-const CONFIG_PEER = {
-    config: {
-        iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
-            {
-                urls: 'turn:openrelay.metered.ca:80',
-                username: 'openrelay',
-                credential: 'openrelay'
-            },
-            {
-                urls: 'turn:openrelay.metered.ca:443',
-                username: 'openrelay',
-                credential: 'openrelay'
-            }
-        ]
+function atualizarStatusUI(msg, cor = "#ffcc00") {
+    const statusElem = document.getElementById('statusMultiplayer');
+    if (statusElem) {
+        statusElem.innerText = msg;
+        statusElem.style.color = cor;
     }
-};
+}
 
 function criarSalaOnline() {
     atualizarStatusUI("Gerando Sala...", "#ffcc00");
     if (peer) peer.destroy();
 
-    peer = new Peer(CONFIG_PEER);
+    peer = new Peer();
 
     peer.on('open', (id) => {
         meuIdSocket = id;
@@ -271,7 +259,7 @@ function criarSalaOnline() {
     });
 
     peer.on('error', (err) => {
-        console.error("Erro no PeerJS:", err);
+        console.error(err);
         atualizarStatusUI("Erro ao criar sala. Tente de novo.", "#ff0000");
     });
 }
@@ -286,53 +274,46 @@ function entrarNaSala() {
     atualizarStatusUI("Conectando...", "#ffcc00");
     if (peer) peer.destroy();
 
-    peer = new Peer(CONFIG_PEER);
+    peer = new Peer();
 
     peer.on('open', (id) => {
         meuIdSocket = id;
         conexaoPeer = peer.connect(codigoSala, { reliable: true });
-        configurarEventosConexao(conexaoPeer);
+        
+        // Garante a abertura da conexão
+        conexaoPeer.on('open', () => {
+            conexoesAtivas.push(conexaoPeer);
+            configurarEventosConexao(conexaoPeer);
+        });
     });
 
     peer.on('error', (err) => {
-        console.error("Erro no PeerJS:", err);
-        atualizarStatusUI("Erro de conexão.", "#ff0000");
-    });
-}
-function entrarNaSala() {
-    const codigoSala = document.getElementById('codigoSalaInput').value.trim();
-    if (!codigoSala) {
-        alert("Cole o código gerado pelo seu amigo!");
-        return;
-    }
-
-    atualizarStatusUI("Conectando...", "#ffcc00");
-    if (peer) peer.destroy();
-
-    peer = new Peer(CONFIG_PEER);
-
-    peer.on('open', (id) => {
-        meuIdSocket = id;
-        conexaoPeer = peer.connect(codigoSala, { reliable: true });
-        configurarEventosConexao(conexaoPeer);
-    });
-
-    peer.on('error', (err) => {
-        console.error("Erro no PeerJS:", err);
-        atualizarStatusUI("Erro de conexão.", "#ff0000");
+        console.error(err);
+        atualizarStatusUI("Código inválido ou sala fechada.", "#ff0000");
     });
 }
 
 function configurarEventosConexao(conn) {
-    conn.on('open', () => {
-        atualizarStatusUI("🌐 Conectado ao amigo!", "#2ecc71");
+    atualizarStatusUI("🌐 Conectado ao amigo!", "#2ecc71");
+    
+    // Envia o sinal de entrada imediatamente
+    setTimeout(() => {
         enviarEstadoMultiplayer('spawn');
-    });
+    }, 500);
 
     conn.on('data', (data) => {
         if (data && data.id && data.id !== meuIdSocket) {
             processarDadosMultiplayer(data);
+            
+            // Se o amigo acabou de entrar, envia de volta a sua posição para ele te enxergar
+            if (data.acao === 'spawn') {
+                enviarEstadoMultiplayer('posicao');
+            }
         }
+    });
+
+    conn.on('close', () => {
+        atualizarStatusUI("Conexão perdida com o amigo.", "#ff0000");
     });
 }
 
